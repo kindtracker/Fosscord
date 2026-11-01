@@ -62,7 +62,8 @@ async function GetMessages(ChannelId) {
 
   return Messages.map((Message) => ({
     Id: Message.id,
-    Username: Message.author.username,
+    UserName: Message.author.username,
+    UserId: Message.author.userid,
     Avatar: Message.author.displayAvatarURL(),
     Content: Message.content,
     Timestamp: Message.createdAt,

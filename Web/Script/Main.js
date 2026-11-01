@@ -1,23 +1,66 @@
-async function FetchMessages(ChannelId) {
+function GetUserColor(UserId, Lightness = 70) {
+  let IdHash = 0n;
+
+  for (const Character of String(UserId)) {
+    IdHash =
+      (IdHash * 31n + BigInt(Character.charCodeAt(0))) & 0xffffffffffffffffn;
+  }
+
+  return IdHash && `hsl(${IdHash % 360n}, 100%, ${Lightness}%)`;
+}
+
+function CreateChatMessage(Message) {
+  const Container = document.createElement("div");
+  Container.className = "ChatMessage";
+
+  const Avatar = document.createElement("img");
+  Avatar.className = "ChatMessageAvatar";
+  Avatar.src = Message.Avatar;
+  Avatar.alt = "";
+
+  const Content = document.createElement("div");
+  Content.className = "ChatMessageContent";
+
+  const Header = document.createElement("div");
+  Header.className = "ChatMessageHeader";
+
+  const User = document.createElement("span");
+  User.className = "ChatMessageUser";
+  User.textContent = Message.UserName;
+  User.style.color = GetUserColor(Message.UserId);
+
+  const Timestamp = document.createElement("span");
+  Timestamp.className = "ChatMessageTimestamp";
+  Timestamp.textContent = new Date(Message.Timestamp).toLocaleString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const Text = document.createElement("p");
+  Text.className = "ChatMessageText";
+  Text.textContent = Message.Content;
+
+  Header.append(User, Timestamp);
+  Content.append(Header, Text);
+  Container.append(Avatar, Content);
+
+  return Container;
+}
+
+async function LoadMessages(ChannelId) {
   const Response = await fetch(`/Api/${ChannelId}/Messages`);
 
   if (!Response.ok) {
-    throw new Error("Failed to fetch messages");
+    throw new Error("Failed to load messages.");
   }
 
   const Messages = await Response.json();
+  const ChatMessages = document.getElementById("ChatMessages");
 
-  console.log(Messages);
-
-  return Messages;
+  ChatMessages.replaceChildren(...Messages.map(CreateChatMessage));
 }
 
-const Path = window.location.pathname;
-const Parts = Path.split("/").filter(Boolean);
+const Parts = location.pathname.split("/").filter(Boolean);
+const ChannelId = Parts[2];
 
-const ChannelId = Parts[Parts.length - 1];
-
-console.log(Path);
-console.log(ChannelId);
-
-FetchMessages(ChannelId);
+LoadMessages(ChannelId);

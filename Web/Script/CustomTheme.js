@@ -84,20 +84,20 @@ function GenerateTheme(BaseColor) {
   const { H } = HexToHSL(BaseColor);
 
   const Colors = {
-    Rosewater: HSLToHex(H - 25, 65, 80),
-    Flamingo: HSLToHex(H - 15, 70, 80),
-    Pink: HSLToHex(H + 325, 70, 80),
-    Mauve: HSLToHex(H, 70, 80),
-    Red: HSLToHex(H - 35, 70, 80),
-    Maroon: HSLToHex(H - 25, 60, 70),
-    Peach: HSLToHex(H - 15, 80, 75),
-    Yellow: HSLToHex(H + 35, 75, 80),
-    Green: HSLToHex(H + 120, 55, 75),
-    Teal: HSLToHex(H + 165, 55, 75),
-    Sky: HSLToHex(H + 185, 65, 80),
-    Sapphire: HSLToHex(H + 200, 65, 75),
-    Blue: HSLToHex(H + 220, 70, 80),
-    Lavender: HSLToHex(H + 245, 65, 80),
+    Rosewater: HSLToHex(H - 25, 65, 90),
+    Flamingo: HSLToHex(H - 15, 70, 90),
+    Pink: HSLToHex(H + 325, 70, 90),
+    Mauve: HSLToHex(H, 70, 90),
+    Red: HSLToHex(H - 35, 70, 90),
+    Maroon: HSLToHex(H - 25, 60, 85),
+    Peach: HSLToHex(H - 15, 80, 88),
+    Yellow: HSLToHex(H + 35, 75, 90),
+    Green: HSLToHex(H + 120, 55, 88),
+    Teal: HSLToHex(H + 165, 55, 88),
+    Sky: HSLToHex(H + 185, 65, 90),
+    Sapphire: HSLToHex(H + 200, 65, 88),
+    Blue: HSLToHex(H + 220, 70, 90),
+    Lavender: HSLToHex(H + 245, 65, 90),
 
     Text: HSLToHex(H, 15, 87),
     Subtext1: HSLToHex(H, 15, 79),
@@ -111,7 +111,7 @@ function GenerateTheme(BaseColor) {
     Surface1: HSLToHex(H, 18, 31),
     Surface0: HSLToHex(H, 18, 23),
 
-    Base: HSLToHex(H, 20, 30),
+    Base: HSLToHex(H, 20, 20),
     Mantle: HSLToHex(H, 20, 12),
     Crust: HSLToHex(H, 20, 9),
   };
