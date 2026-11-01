@@ -26,25 +26,21 @@ const Bot = new Client({
 });
 
 async function CopyChannels() {
-  const Guilds = await Bot.guilds.fetch();
+  const Servers = await Bot.guilds.fetch();
 
-  for (const [GuildId, Guild] of Guilds) {
-    CreateFolder(`Web/Channels/${Guild.id}`);
+  for (const [ServerId, Server] of Servers) {
+    CreateFolder(`Web/Channels/${Server.id}`);
 
-    const FetchedGuild = await Guild.fetch();
-    const Channels = await FetchedGuild.channels.fetch();
+    const FetchedServer = await Server.fetch();
+    const Channels = await FetchedServer.channels.fetch();
 
     Channels.forEach((Channel) => {
-      const Type = ChannelType[Channel.type];
-
-      if (Type != "GuildCategory") {
-        const ChannelPath = `Web/Channels/${Guild.id}/${Channel.id}`;
+      if (Channel.type !== ChannelType.GuildCategory) {
+        const ChannelPath = `Web/Channels/${Server.id}/${Channel.id}`;
 
         CreateFolder(ChannelPath);
         CopyClient(ChannelPath);
       }
-
-      console.log(Channel.name, Channel.id, Type);
     });
   }
 }
@@ -63,11 +59,30 @@ async function GetMessages(ChannelId) {
   return Messages.map((Message) => ({
     Id: Message.id,
     UserName: Message.author.username,
-    UserId: Message.author.userid,
+    UserId: Message.author.id,
     Avatar: Message.author.displayAvatarURL(),
     Content: Message.content,
     Timestamp: Message.createdAt,
   })).reverse();
+}
+
+async function GetChannels(ServerId) {
+  const Response = [];
+
+  const Server = await Bot.guilds.fetch(ServerId);
+  const Channels = await Server.channels.fetch();
+
+  Channels.forEach((Channel) => {
+    Response.push({
+      Id: Channel.id,
+      Name: Channel.name,
+      Type: ChannelType[Channel.type],
+      ParentId: Channel.parentId,
+      Position: Channel.position,
+    });
+  });
+
+  return Response;
 }
 
 function StartWebServer() {
@@ -106,6 +121,37 @@ function StartWebServer() {
         });
 
         Response.end(JSON.stringify(Messages));
+      } catch (Error) {
+        Response.writeHead(400, {
+          "Content-Type": "application/json",
+        });
+
+        Response.end(
+          JSON.stringify({
+            Error: Error.message,
+          }),
+        );
+      }
+
+      return;
+    }
+
+    if (
+      Request.method === "GET" &&
+      Parts.length === 3 &&
+      Parts[0] === "Api" &&
+      Parts[2] === "Channels"
+    ) {
+      const ServerId = Parts[1];
+
+      try {
+        const Channels = await GetChannels(ServerId);
+
+        Response.writeHead(200, {
+          "Content-Type": "application/json",
+        });
+
+        Response.end(JSON.stringify(Channels));
       } catch (Error) {
         Response.writeHead(400, {
           "Content-Type": "application/json",

@@ -13,9 +13,21 @@
     <link href="/Style/Main.css" rel="stylesheet">
   </head>
   <body>
-    <div id="ChatMessages"></div>
+    <aside id="ServerSidebar">
+      <div class="ServerIcon">TS</div>
+    </aside>
+
+    <aside id="ChannelSidebar">
+      <div id="ServerName">Server Name</div>
+      <div id="ChannelList"></div>
+    </aside>
+
+    <main id="Chat">
+      <div id="ChatMessages"></div>
+    </main>
 
     <script src="/Script/CustomTheme.js"></script>
-    <script src="/Script/Main.js"></script>
+    <script src="/Script/Chat.js"></script>
+    <script src="/Script/Channels.js"></script>
   </body>
 </html>

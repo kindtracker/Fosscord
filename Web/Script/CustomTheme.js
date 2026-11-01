@@ -99,7 +99,7 @@ function GenerateTheme(BaseColor) {
     Blue: HSLToHex(H + 220, 70, 90),
     Lavender: HSLToHex(H + 245, 65, 90),
 
-    Text: HSLToHex(H, 15, 87),
+    Text: HSLToHex(H, 15, 92),
     Subtext1: HSLToHex(H, 15, 79),
     Subtext0: HSLToHex(H, 15, 71),
 

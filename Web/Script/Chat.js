@@ -47,11 +47,11 @@ function CreateChatMessage(Message) {
   return Container;
 }
 
-async function LoadMessages(ChannelId) {
+async function LoadChat(ChannelId) {
   const Response = await fetch(`/Api/${ChannelId}/Messages`);
 
   if (!Response.ok) {
-    throw new Error("Failed to load messages.");
+    throw new Error("Failed to load chat");
   }
 
   const Messages = await Response.json();
@@ -63,4 +63,4 @@ async function LoadMessages(ChannelId) {
 const Parts = location.pathname.split("/").filter(Boolean);
 const ChannelId = Parts[2];
 
-LoadMessages(ChannelId);
+LoadChat(ChannelId);
