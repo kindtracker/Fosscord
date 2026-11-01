@@ -1,19 +1,21 @@
 const Fs = require("fs");
+const Http = require("http");
+const Path = require("path");
 const { Client, GatewayIntentBits, ChannelType } = require("discord.js");
 
 const Token = Fs.readFileSync("DiscordToken", "utf8").trim();
 
 function CreateFolder(Name) {
   if (!Fs.existsSync(Name)) {
-    Fs.mkdirSync(Name);
+    Fs.mkdirSync(Name, { recursive: true });
   }
 }
 
-function CopyMain(Name) {
-  Fs.copyFileSync("Web/Main.html", Name);
+function CopyClient(Name) {
+  Fs.copyFileSync("Web/Client.html", Path.join(Name, "Client.html"));
 }
 
-CreateFolder(`Web/Channels`);
+CreateFolder("Web/Channels");
 
 const Bot = new Client({
   intents: [
@@ -36,7 +38,10 @@ async function CopyChannels() {
       const Type = ChannelType[Channel.type];
 
       if (Type != "GuildCategory") {
-        CopyMain(`Web/Channels/${Guild.id}/${Channel.id}`);
+        const ChannelPath = `Web/Channels/${Guild.id}/${Channel.id}`;
+
+        CreateFolder(ChannelPath);
+        CopyClient(ChannelPath);
       }
 
       console.log(Channel.name, Channel.id, Type);
@@ -44,10 +49,73 @@ async function CopyChannels() {
   }
 }
 
+function StartWebServer() {
+  const WebDirectory = Path.resolve("Web");
+
+  const MimeTypes = {
+    ".html": "text/html",
+    ".css": "text/css",
+    ".js": "text/javascript",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+    ".txt": "text/plain",
+  };
+
+  const Server = Http.createServer((Request, Response) => {
+    const UrlPath = decodeURIComponent(
+      new URL(Request.url, "http://localhost").pathname,
+    );
+
+    let FilePath = Path.resolve(WebDirectory, `.${UrlPath}`);
+
+    if (
+      !FilePath.startsWith(WebDirectory + Path.sep) &&
+      FilePath !== WebDirectory
+    ) {
+      Response.writeHead(403);
+      return Response.end("Forbidden");
+    }
+
+    try {
+      if (Fs.existsSync(FilePath) && Fs.statSync(FilePath).isDirectory()) {
+        FilePath = Path.join(FilePath, "Client.html");
+      }
+
+      if (!Fs.existsSync(FilePath) || !Fs.statSync(FilePath).isFile()) {
+        Response.writeHead(404);
+        return Response.end("Not Found");
+      }
+
+      const Extension = Path.extname(FilePath);
+      const ContentType = MimeTypes[Extension] || "text/html";
+
+      Response.writeHead(200, {
+        "Content-Type": ContentType,
+      });
+
+      Fs.createReadStream(FilePath).pipe(Response);
+    } catch (Error) {
+      console.error(Error);
+      Response.writeHead(500);
+      Response.end("Internal Server Error");
+    }
+  });
+
+  Server.listen(3000, () => {
+    console.log("Web server running at http://localhost:3000");
+  });
+}
+
 Bot.once("clientReady", async () => {
   console.log(`Logged in as ${Bot.user.tag}`);
 
-  CopyChannels();
+  await CopyChannels();
+
+  StartWebServer();
 });
 
 Bot.on("messageCreate", (Message) => {
