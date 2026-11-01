@@ -49,6 +49,26 @@ async function CopyChannels() {
   }
 }
 
+async function GetMessages(ChannelId) {
+  const Channel = await Bot.channels.fetch(ChannelId);
+
+  if (!Channel || !Channel.isTextBased() || !Channel.messages) {
+    throw new Error("Invalid text channel");
+  }
+
+  const Messages = await Channel.messages.fetch({
+    limit: 100,
+  });
+
+  return Messages.map((Message) => ({
+    Id: Message.id,
+    Username: Message.author.username,
+    Avatar: Message.author.displayAvatarURL(),
+    Content: Message.content,
+    Timestamp: Message.createdAt,
+  })).reverse();
+}
+
 function StartWebServer() {
   const WebDirectory = Path.resolve("Web");
 
@@ -65,11 +85,42 @@ function StartWebServer() {
     ".txt": "text/plain",
   };
 
-  const Server = Http.createServer((Request, Response) => {
-    const UrlPath = decodeURIComponent(
-      new URL(Request.url, "http://localhost").pathname,
-    );
+  const Server = Http.createServer(async (Request, Response) => {
+    const Url = new URL(Request.url, "http://localhost");
+    const Parts = Url.pathname.split("/").filter(Boolean);
 
+    if (
+      Request.method === "GET" &&
+      Parts.length === 3 &&
+      Parts[0] === "Api" &&
+      Parts[2] === "Messages"
+    ) {
+      const ChannelId = Parts[1];
+
+      try {
+        const Messages = await GetMessages(ChannelId);
+
+        Response.writeHead(200, {
+          "Content-Type": "application/json",
+        });
+
+        Response.end(JSON.stringify(Messages));
+      } catch (Error) {
+        Response.writeHead(400, {
+          "Content-Type": "application/json",
+        });
+
+        Response.end(
+          JSON.stringify({
+            Error: Error.message,
+          }),
+        );
+      }
+
+      return;
+    }
+
+    const UrlPath = decodeURIComponent(Url.pathname);
     let FilePath = Path.resolve(WebDirectory, `.${UrlPath}`);
 
     if (
