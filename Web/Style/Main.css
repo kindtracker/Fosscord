@@ -70,18 +70,18 @@ body {
 }
 
 #ServerSidebar {
-  width: 72px;
+  width: calc(42px + 8px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px 0;
   gap: 12px;
 }
 
 .ServerIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  margin-right: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
   background: var(--Surface0);
   display: grid;
   place-items: center;
@@ -109,29 +109,30 @@ body {
 }
 
 #ChannelList {
-  padding: 12px 8px;
+  padding: 12px 0;
   overflow-y: auto;
   height: 100vw;
-}
-
-.ChannelCategory {
-  color: var(--Subtext0);
-  font-size: 12px;
-  font-weight: bold;
-  text-transform: uppercase;
-  padding: 12px 8px 6px;
 }
 
 .Channel {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px;
-  margin: 2px 0;
+  margin-top: 4px;
   border-radius: 5px;
-  color: var(--Subtext1);
   cursor: pointer;
   text-decoration: none;
+  margin-left: 4px;
+  margin-right: 4px;
+  border-radius: 7px;
+}
+
+.Channel > span {
+  color: var(--Subtext0);
+}
+
+.Channel:hover > span, .Channel.Active > span {
+  color: var(--Text);
 }
 
 .Channel:hover {
@@ -146,6 +147,9 @@ body {
 
 .ChannelIcon {
   color: var(--Overlay1);
+  font-size: 16px;
+  margin-top: 4px;
+  margin-left: 8px;
 }
 
 #Chat {
@@ -155,4 +159,25 @@ body {
   overflow-y: auto;
   border-top-left-radius: 0px;
   height: 100vw;
+}
+
+.Category {
+  margin-bottom: 12px;
+}
+
+.CategoryChannels {
+  display: flex;
+  flex-direction: column;
+}
+
+.ChannelCategory {
+  color: var(--Subtext0);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 8px 6px;
+}
+
+.ChannelCategory:hover {
+  color: var(--Text);
+  cursor: pointer;
 }

@@ -100,8 +100,8 @@ function GenerateTheme(BaseColor) {
     Lavender: HSLToHex(H + 245, 65, 90),
 
     Text: HSLToHex(H, 15, 92),
-    Subtext1: HSLToHex(H, 15, 79),
-    Subtext0: HSLToHex(H, 15, 71),
+    Subtext1: HSLToHex(H, 15, 69),
+    Subtext0: HSLToHex(H, 15, 61),
 
     Overlay2: HSLToHex(H, 15, 63),
     Overlay1: HSLToHex(H, 15, 55),
