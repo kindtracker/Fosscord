@@ -1,3 +1,5 @@
+const MessageInput = document.querySelector("#MessageInput");
+
 function GetUserColor(UserId, Lightness = 70) {
   let IdHash = 0n;
 
@@ -59,6 +61,27 @@ async function LoadChat(ChannelId) {
 
   ChatMessages.replaceChildren(...Messages.map(CreateChatMessage));
 }
+
+async function SendMessage(Content) {
+  const Response = await fetch(`/Api/${ChannelId}/Messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      Content: MessageInput.value,
+    }),
+  });
+  if (!Response.ok) {
+    throw new Error("Failed to send message");
+  }
+}
+
+MessageInput.addEventListener("keydown", function (Event) {
+  if (Event.key === "Enter") {
+    Event.preventDefault();
+    SendMessage(MessageInput.value);
+    MessageInput.value = "";
+  }
+});
 
 const Parts = location.pathname.split("/").filter(Boolean);
 const ChannelId = Parts[2];

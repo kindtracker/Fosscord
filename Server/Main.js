@@ -1,7 +1,10 @@
 const Fs = require("fs");
-const Http = require("http");
+const Express = require("express");
 const Path = require("path");
+const { Server } = require("socket.io");
 const { Client, GatewayIntentBits, ChannelType } = require("discord.js");
+
+let HttpServer = null;
 
 const Token = Fs.readFileSync("DiscordToken", "utf8").trim();
 
@@ -9,10 +12,6 @@ function CreateFolder(Name) {
   if (!Fs.existsSync(Name)) {
     Fs.mkdirSync(Name, { recursive: true });
   }
-}
-
-function CopyClient(Name) {
-  Fs.copyFileSync("Web/Client.html", Path.join(Name, "Client.html"));
 }
 
 CreateFolder("Web/Channels");
@@ -24,26 +23,6 @@ const Bot = new Client({
     GatewayIntentBits.MessageContent,
   ],
 });
-
-async function CopyChannels() {
-  const Servers = await Bot.guilds.fetch();
-
-  for (const [ServerId, Server] of Servers) {
-    CreateFolder(`Web/Channels/${Server.id}`);
-
-    const FetchedServer = await Server.fetch();
-    const Channels = await FetchedServer.channels.fetch();
-
-    Channels.forEach((Channel) => {
-      if (Channel.type !== ChannelType.GuildCategory) {
-        const ChannelPath = `Web/Channels/${Server.id}/${Channel.id}`;
-
-        CreateFolder(ChannelPath);
-        CopyClient(ChannelPath);
-      }
-    });
-  }
-}
 
 async function GetMessages(ChannelId) {
   const Channel = await Bot.channels.fetch(ChannelId);
@@ -66,6 +45,31 @@ async function GetMessages(ChannelId) {
   })).reverse();
 }
 
+async function SendMessage(ChannelId, Content) {
+  const Channel = await Bot.channels.fetch(ChannelId);
+
+  if (!Channel || !Channel.isTextBased() || !Channel.messages) {
+    throw new Error("Invalid text channel");
+  }
+
+  if (!Channel.isSendable()) {
+    throw new Error("This channel does not support sending messages");
+  }
+
+  const Message = await Channel.send({
+    content: Content,
+  });
+
+  return {
+    Id: Message.id,
+    UserName: Message.author.username,
+    UserId: Message.author.id,
+    Avatar: Message.author.displayAvatarURL(),
+    Content: Message.content,
+    Timestamp: Message.createdAt,
+  };
+}
+
 async function GetChannels(ServerId) {
   const Response = [];
 
@@ -85,125 +89,109 @@ async function GetChannels(ServerId) {
   return Response;
 }
 
+function StartSocketServer() {
+  const Io = new Server(HttpServer);
+
+  Io.on("connection", (Socket) => {
+    console.log(`Client connected: ${Socket.id}`);
+
+    Socket.on("JoinChannel", async (ChannelId, Callback) => {
+      try {
+        const Channel = await Bot.channels.fetch(ChannelId);
+
+        if (!Channel || !Channel.isTextBased()) {
+          throw new Error("Invalid text channel");
+        }
+
+        Socket.join(`Channel:${ChannelId}`);
+
+        if (Callback) {
+          Callback({ Success: true });
+        }
+      } catch (Error) {
+        if (Callback) {
+          Callback({
+            Success: false,
+            Error: Error.message,
+          });
+        }
+      }
+    });
+
+    Socket.on("disconnect", () => {
+      console.log(`Client disconnected: ${Socket.id}`);
+    });
+  });
+}
+
 function StartWebServer() {
+  const App = Express();
   const WebDirectory = Path.resolve("Web");
+  HttpServer = Http.createServer(App);
 
-  const MimeTypes = {
-    ".html": "text/html",
-    ".css": "text/css",
-    ".js": "text/javascript",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".svg": "image/svg+xml",
-    ".ico": "image/x-icon",
-    ".txt": "text/plain",
-  };
+  App.use(Express.json({ limit: "16kb" }));
 
-  const Server = Http.createServer(async (Request, Response) => {
-    const Url = new URL(Request.url, "http://localhost");
-    const Parts = Url.pathname.split("/").filter(Boolean);
-
-    if (
-      Request.method === "GET" &&
-      Parts.length === 3 &&
-      Parts[0] === "Api" &&
-      Parts[2] === "Messages"
-    ) {
-      const ChannelId = Parts[1];
-
-      try {
-        const Messages = await GetMessages(ChannelId);
-
-        Response.writeHead(200, {
-          "Content-Type": "application/json",
-        });
-
-        Response.end(JSON.stringify(Messages));
-      } catch (Error) {
-        Response.writeHead(400, {
-          "Content-Type": "application/json",
-        });
-
-        Response.end(
-          JSON.stringify({
-            Error: Error.message,
-          }),
-        );
-      }
-
-      return;
-    }
-
-    if (
-      Request.method === "GET" &&
-      Parts.length === 3 &&
-      Parts[0] === "Api" &&
-      Parts[2] === "Channels"
-    ) {
-      const ServerId = Parts[1];
-
-      try {
-        const Channels = await GetChannels(ServerId);
-
-        Response.writeHead(200, {
-          "Content-Type": "application/json",
-        });
-
-        Response.end(JSON.stringify(Channels));
-      } catch (Error) {
-        Response.writeHead(400, {
-          "Content-Type": "application/json",
-        });
-
-        Response.end(
-          JSON.stringify({
-            Error: Error.message,
-          }),
-        );
-      }
-
-      return;
-    }
-
-    const UrlPath = decodeURIComponent(Url.pathname);
-    let FilePath = Path.resolve(WebDirectory, `.${UrlPath}`);
-
-    if (
-      !FilePath.startsWith(WebDirectory + Path.sep) &&
-      FilePath !== WebDirectory
-    ) {
-      Response.writeHead(403);
-      return Response.end("Forbidden");
-    }
-
+  App.get("/Api/:ChannelId/Messages", async (Request, Response) => {
     try {
-      if (Fs.existsSync(FilePath) && Fs.statSync(FilePath).isDirectory()) {
-        FilePath = Path.join(FilePath, "Client.html");
-      }
+      const Messages = await GetMessages(Request.params.ChannelId);
 
-      if (!Fs.existsSync(FilePath) || !Fs.statSync(FilePath).isFile()) {
-        Response.writeHead(404);
-        return Response.end("Not Found");
-      }
-
-      const Extension = Path.extname(FilePath);
-      const ContentType = MimeTypes[Extension] || "text/html";
-
-      Response.writeHead(200, {
-        "Content-Type": ContentType,
-      });
-
-      Fs.createReadStream(FilePath).pipe(Response);
+      Response.json(Messages);
     } catch (Error) {
-      console.error(Error);
-      Response.writeHead(500);
-      Response.end("Internal Server Error");
+      Response.status(400).json({
+        Error: Error.message,
+      });
     }
   });
 
-  Server.listen(3000, () => {
+  App.post("/Api/:ChannelId/Messages", async (Request, Response) => {
+    try {
+      const { Content } = Request.body || {};
+
+      if (typeof Content !== "string" || !Content.trim()) {
+        return Response.status(400).json({
+          Error: "Message content cannot be empty",
+        });
+      }
+
+      if (Content.length > 2000) {
+        return Response.status(400).json({
+          Error: "Message content exceeds 2000 characters",
+        });
+      }
+
+      const Message = await SendMessage(Request.params.ChannelId, Content);
+
+      Response.status(201).json(Message);
+    } catch (Error) {
+      Response.status(400).json({
+        Error: Error.message,
+      });
+    }
+  });
+
+  App.get("/Api/:ServerId/Channels", async (Request, Response) => {
+    try {
+      const Channels = await GetChannels(Request.params.ServerId);
+
+      Response.json(Channels);
+    } catch (Error) {
+      Response.status(400).json({
+        Error: Error.message,
+      });
+    }
+  });
+
+  App.use(Express.static(WebDirectory));
+
+  App.get("/{*Path}", (Request, Response) => {
+    Response.sendFile(Path.join(WebDirectory, "Client.html"), (Error) => {
+      if (Error && !Response.headersSent) {
+        Response.status(404).send("Not Found");
+      }
+    });
+  });
+
+  HttpServer.listen(3000, () => {
     console.log("Web server running at http://localhost:3000");
   });
 }
@@ -211,17 +199,21 @@ function StartWebServer() {
 Bot.once("clientReady", async () => {
   console.log(`Logged in as ${Bot.user.tag}`);
 
-  await CopyChannels();
-
   StartWebServer();
+  StartSocketServer();
 });
 
 Bot.on("messageCreate", (Message) => {
-  if (Message.author.bot) return;
+  if (!Message.guild) return;
 
-  if (Message.content === ".CopyChannels") {
-    CopyChannels();
-  }
+  Io.to(`Channel:${Message.channelId}`).emit("newMessage", {
+    Id: Message.id,
+    UserName: Message.author.username,
+    UserId: Message.author.id,
+    Avatar: Message.author.displayAvatarURL(),
+    Content: Message.content,
+    Timestamp: Message.createdAt,
+  });
 });
 
 Bot.login(Token);
