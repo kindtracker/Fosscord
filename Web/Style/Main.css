@@ -1,10 +1,14 @@
+:root {
+  --Surface10: color-mix(in srgb, var(--Surface0) 97.5%, white);
+}
+
 * {
   border-radius: 5px;
-  font-family: "Noto Sans", Helvetica, Arial, sans-serif;
+  font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: var(--Text);
 }
 
-body {
+html, body {
   background: var(--Base);
   width: 100%;
   height: 100%;
@@ -12,15 +16,51 @@ body {
   display: flex;
 }
 
-#ChatMessages {
+#Chat {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--Base);
+  overflow: hidden;
   background: var(--Surface0);
+}
+
+#ChatMessages {
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 16px;
   border-top-left-radius: 0px;
   height: 100vw;
-  overflow-y: show;
+  overflow-y: auto;
+}
+
+#MessageInputContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  margin-left: 7px;
+  margin-right: 7px;
+  flex-shrink: 0;
+  border: 1px solid var(--Surface1);
+}
+
+#MessageInput {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border: none;
+  outline: none;
+  background: var(--Surface10);
+  color: var(--Text);
+  font-size: 14px;
+}
+
+#MessageInput::placeholder {
+  color: var(--Subtext0);
 }
 
 .ChatMessage {
@@ -86,7 +126,7 @@ body {
   display: grid;
   place-items: center;
   color: var(--Text);
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -102,7 +142,7 @@ body {
 
 #ServerName {
   padding: 16px;
-  font-weight: bold;
+  font-weight: 500;
   border-bottom-left-radius: 0px;
   border-bottom-right-radius: 0px;
   border-bottom: 2px solid var(--Surface0);
@@ -118,6 +158,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  height: calc(32px - 4px);
   margin-top: 4px;
   border-radius: 5px;
   cursor: pointer;
@@ -150,15 +191,6 @@ body {
   font-size: 16px;
   margin-top: 4px;
   margin-left: 8px;
-}
-
-#Chat {
-  flex: 1;
-  min-width: 0;
-  background: var(--Base);
-  overflow-y: auto;
-  border-top-left-radius: 0px;
-  height: 100vw;
 }
 
 .Category {
