@@ -1,4 +1,5 @@
 const MessageInput = document.querySelector("#MessageInput");
+const Socket = io();
 
 function GetUserColor(UserId, Lightness = 70) {
   let IdHash = 0n;
@@ -60,6 +61,17 @@ async function LoadChat(ChannelId) {
   const ChatMessages = document.getElementById("ChatMessages");
 
   ChatMessages.replaceChildren(...Messages.map(CreateChatMessage));
+
+  Socket.emit("JoinChannel", ChannelId, (Response) => {
+    if (!Response.Success) {
+      throw new Response.Error();
+    }
+  });
+
+  Socket.on("NewMessage", (Message) => {
+    console.log(Message);
+    ChatMessages.append(CreateChatMessage(Message));
+  });
 }
 
 async function SendMessage(Content) {

@@ -1,10 +1,12 @@
 const Fs = require("fs");
 const Express = require("express");
+const Http = require("http");
 const Path = require("path");
 const { Server } = require("socket.io");
 const { Client, GatewayIntentBits, ChannelType } = require("discord.js");
 
 let HttpServer = null;
+let Io = null;
 
 const Token = Fs.readFileSync("DiscordToken", "utf8").trim();
 
@@ -90,7 +92,7 @@ async function GetChannels(ServerId) {
 }
 
 function StartSocketServer() {
-  const Io = new Server(HttpServer);
+  Io = new Server(HttpServer);
 
   Io.on("connection", (Socket) => {
     console.log(`Client connected: ${Socket.id}`);
@@ -206,7 +208,7 @@ Bot.once("clientReady", async () => {
 Bot.on("messageCreate", (Message) => {
   if (!Message.guild) return;
 
-  Io.to(`Channel:${Message.channelId}`).emit("newMessage", {
+  Io.to(`Channel:${Message.channelId}`).emit("NewMessage", {
     Id: Message.id,
     UserName: Message.author.username,
     UserId: Message.author.id,
