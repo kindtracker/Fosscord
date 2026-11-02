@@ -1,5 +1,6 @@
 :root {
   --Surface10: color-mix(in srgb, var(--Surface0) 97.5%, white);
+  --Surface20: color-mix(in srgb, var(--Surface1) 97.5%, white);
 }
 
 * {
@@ -31,7 +32,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px;
+  padding: 0;
   border-top-left-radius: 0px;
   height: 100vw;
   overflow-y: auto;
@@ -67,6 +68,12 @@ html, body {
   display: flex;
   gap: 12px;
   align-items: flex-start;
+  width: 100%;
+}
+
+.ChatMessage:hover {
+  background: var(--Surface20);
+  border-radius: 0;
 }
 
 .ChatMessageAvatar {
@@ -75,6 +82,8 @@ html, body {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  margin-left: 16px;
+  margin-top: 4px;
 }
 
 .ChatMessageContent {

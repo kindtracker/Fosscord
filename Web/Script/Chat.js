@@ -69,7 +69,6 @@ async function LoadChat(ChannelId) {
   });
 
   Socket.on("NewMessage", (Message) => {
-    console.log(Message);
     ChatMessages.append(CreateChatMessage(Message));
   });
 }
