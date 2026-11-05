@@ -15,6 +15,7 @@ function GetUserColor(UserId, Lightness = 70) {
 function CreateChatMessage(Message) {
   const Container = document.createElement("div");
   Container.className = "ChatMessage";
+  Container.dataset.Id = Message.Id;
 
   const Avatar = document.createElement("img");
   Avatar.className = "ChatMessageAvatar";
@@ -46,6 +47,28 @@ function CreateChatMessage(Message) {
   Header.append(User, Timestamp);
   Content.append(Header, Text);
   Container.append(Avatar, Content);
+
+  const Actions = document.createElement("div");
+  Actions.className = "ChatMessageActions";
+
+  const ReplyButton = document.createElement("button");
+  ReplyButton.textContent = "↩";
+  ReplyButton.title = "Reply";
+
+  const CopyButton = document.createElement("button");
+  CopyButton.textContent = "📋";
+  CopyButton.title = "Copy message";
+
+  CopyButton.addEventListener("click", () => {
+    navigator.clipboard.writeText(Message.Content);
+  });
+
+  const MoreButton = document.createElement("button");
+  MoreButton.textContent = "⋯";
+  MoreButton.title = "More";
+
+  Actions.append(ReplyButton, CopyButton, MoreButton);
+  Container.append(Actions);
 
   return Container;
 }
@@ -92,6 +115,13 @@ MessageInput.addEventListener("keydown", function (Event) {
     SendMessage(MessageInput.value);
     MessageInput.value = "";
   }
+});
+
+document.addEventListener("mouseover", (Event) => {
+  const Message = Event.target.closest(".ChatMessage");
+  if (!Message) return;
+
+  const MessageId = Message.dataset.Id;
 });
 
 const Parts = location.pathname.split("/").filter(Boolean);

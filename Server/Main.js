@@ -26,6 +26,17 @@ const Bot = new Client({
   ],
 });
 
+function GetMessageFromDiscordMessage(Message) {
+  return {
+    Id: Message.id,
+    UserName: Message.author.username,
+    UserId: Message.author.id,
+    Avatar: Message.author.displayAvatarURL(),
+    Content: Message.content,
+    Timestamp: Message.createdAt,
+  };
+}
+
 async function GetMessages(ChannelId) {
   const Channel = await Bot.channels.fetch(ChannelId);
 
@@ -37,14 +48,7 @@ async function GetMessages(ChannelId) {
     limit: 100,
   });
 
-  return Messages.map((Message) => ({
-    Id: Message.id,
-    UserName: Message.author.username,
-    UserId: Message.author.id,
-    Avatar: Message.author.displayAvatarURL(),
-    Content: Message.content,
-    Timestamp: Message.createdAt,
-  })).reverse();
+  return Messages.map(GetMessageFromDiscordMessage).reverse();
 }
 
 async function SendMessage(ChannelId, Content) {
@@ -62,14 +66,7 @@ async function SendMessage(ChannelId, Content) {
     content: Content,
   });
 
-  return {
-    Id: Message.id,
-    UserName: Message.author.username,
-    UserId: Message.author.id,
-    Avatar: Message.author.displayAvatarURL(),
-    Content: Message.content,
-    Timestamp: Message.createdAt,
-  };
+  return GetMessageFromDiscordMessage(Message);
 }
 
 async function GetChannels(ServerId) {
@@ -208,14 +205,10 @@ Bot.once("clientReady", async () => {
 Bot.on("messageCreate", (Message) => {
   if (!Message.guild) return;
 
-  Io.to(`Channel:${Message.channelId}`).emit("NewMessage", {
-    Id: Message.id,
-    UserName: Message.author.username,
-    UserId: Message.author.id,
-    Avatar: Message.author.displayAvatarURL(),
-    Content: Message.content,
-    Timestamp: Message.createdAt,
-  });
+  Io.to(`Channel:${Message.channelId}`).emit(
+    "NewMessage",
+    GetMessageFromDiscordMessage(Message),
+  );
 });
 
 Bot.login(Token);
