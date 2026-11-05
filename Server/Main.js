@@ -27,9 +27,11 @@ const Bot = new Client({
 });
 
 function GetMessageFromDiscordMessage(Message) {
+  console.log(Message.author.displayName);
   return {
     Id: Message.id,
     UserName: Message.author.username,
+    DisplayName: Message.member?.displayName ?? Message.author.displayName,
     UserId: Message.author.id,
     Avatar: Message.author.displayAvatarURL(),
     Content: Message.content,
@@ -92,8 +94,6 @@ function StartSocketServer() {
   Io = new Server(HttpServer);
 
   Io.on("connection", (Socket) => {
-    console.log(`Client connected: ${Socket.id}`);
-
     Socket.on("JoinChannel", async (ChannelId, Callback) => {
       try {
         const Channel = await Bot.channels.fetch(ChannelId);
@@ -117,9 +117,7 @@ function StartSocketServer() {
       }
     });
 
-    Socket.on("disconnect", () => {
-      console.log(`Client disconnected: ${Socket.id}`);
-    });
+    Socket.on("disconnect", () => {});
   });
 }
 

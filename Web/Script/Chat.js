@@ -30,7 +30,7 @@ function CreateChatMessage(Message) {
 
   const User = document.createElement("span");
   User.className = "ChatMessageUser";
-  User.textContent = Message.UserName;
+  User.textContent = Message.DisplayName;
   User.style.color = GetUserColor(Message.UserId);
 
   const Timestamp = document.createElement("span");
