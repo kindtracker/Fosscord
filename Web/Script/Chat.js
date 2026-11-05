@@ -51,23 +51,33 @@ function CreateChatMessage(Message) {
   const Actions = document.createElement("div");
   Actions.className = "ChatMessageActions";
 
+  const TranslateButton = document.createElement("button");
+  TranslateButton.innerHTML = `<i class="fa-solid fa-language"></i>`;
+  TranslateButton.title = "Translate";
+
+  const ReactionButton = document.createElement("button");
+  ReactionButton.innerHTML = `<i class="fa-solid fa-face-smile"></i>`;
+  ReactionButton.title = "React";
+
   const ReplyButton = document.createElement("button");
-  ReplyButton.textContent = "↩";
+  ReplyButton.innerHTML = `<i class="fa-solid fa-reply"></i>`;
   ReplyButton.title = "Reply";
 
-  const CopyButton = document.createElement("button");
-  CopyButton.textContent = "📋";
-  CopyButton.title = "Copy message";
+  const ForwardButton = document.createElement("button");
+  ForwardButton.innerHTML = `<i class="fa-solid fa-share"></i>`;
+  ForwardButton.title = "Forward";
 
-  CopyButton.addEventListener("click", () => {
-    navigator.clipboard.writeText(Message.Content);
-  });
+  const DeleteButton = document.createElement("button");
+  DeleteButton.innerHTML = `<i class="fa-regular fa-trash-can"></i>`;
+  DeleteButton.title = "Delete";
 
-  const MoreButton = document.createElement("button");
-  MoreButton.textContent = "⋯";
-  MoreButton.title = "More";
-
-  Actions.append(ReplyButton, CopyButton, MoreButton);
+  Actions.append(
+    TranslateButton,
+    ReactionButton,
+    ReplyButton,
+    ForwardButton,
+    DeleteButton,
+  );
   Container.append(Actions);
 
   return Container;

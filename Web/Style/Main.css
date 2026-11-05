@@ -235,7 +235,7 @@ html, body {
   padding: 4px;
   background: var(--Surface1);
   border: 1px solid var(--Surface0);
-  border-radius: 6px;
+  border-radius: 8px;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -254,6 +254,13 @@ html, body {
   background: transparent;
   cursor: pointer;
   font-size: 16px;
+}
+
+.fa-face-smile, .fa-language {
+  position: relative;
+  font-size: 20px;
+  left: -2px;
+  top: 2px;
 }
 
 .ChatMessageActions button:hover {
